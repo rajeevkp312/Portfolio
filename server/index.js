@@ -10,7 +10,25 @@ dotenv.config()
 
 const app = express()
 
-app.use(cors({ origin: ['http://localhost:5173'], credentials: false }))
+const allowedFromEnv = (process.env.ALLOWED_ORIGIN || '')
+  .split(',')
+  .map(s => s.trim())
+  .filter(Boolean)
+const allowedOrigins = ['http://localhost:5173', ...allowedFromEnv]
+
+const corsOptions = {
+  origin: function (origin, callback) {
+    if (!origin) return callback(null, true) // allow non-browser tools
+    if (allowedOrigins.includes(origin)) return callback(null, true)
+    return callback(new Error('Not allowed by CORS'))
+  },
+  methods: ['GET', 'POST', 'OPTIONS'],
+  allowedHeaders: ['Content-Type', 'Authorization'],
+  credentials: false,
+}
+
+app.use(cors(corsOptions))
+app.options('*', cors(corsOptions))
 app.use(express.json({ limit: '100kb' }))
 
 app.get('/api/health', (_req, res) => {
