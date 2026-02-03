@@ -1,0 +1,21 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/* Design tokens via CSS variables (consumed by Tailwind classes only) */
+:root {
+  --glass-bg: rgba(255, 255, 255, 0.06);
+  --glass-border: rgba(255, 255, 255, 0.08);
+}
+
+@layer base {
+  html, body, #root { height: 100%; }
+  html { scroll-behavior: smooth; }
+}
+
+@layer components {
+  .glass-card { @apply bg-white/5 backdrop-blur-md border border-white/10 rounded-2xl shadow-soft; }
+  .btn-primary { @apply inline-flex items-center justify-center rounded-xl bg-gradient-to-r from-accent-700 to-accent-500 px-5 py-3 font-semibold text-base text-base-900 shadow-soft hover:from-accent-600 hover:to-accent-500 focus:outline-none focus:ring-2 focus:ring-accent-600/50 transition; }
+  .btn-secondary { @apply inline-flex items-center justify-center rounded-xl bg-white/5 px-5 py-3 font-semibold text-base text-white border border-white/10 hover:bg-white/10 focus:outline-none focus:ring-2 focus:ring-white/30 transition; }
+  .nav-link { @apply text-sm md:text-base text-white/80 hover:text-white transition; }
+}
