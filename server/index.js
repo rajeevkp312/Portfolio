@@ -18,9 +18,11 @@ const allowedOrigins = ['http://localhost:5173', ...allowedFromEnv]
 
 const corsOptions = {
   origin: function (origin, callback) {
-    if (!origin) return callback(null, true) // allow non-browser tools
+    // allow server-to-server / health checks
+    if (!origin) return callback(null, true)
     if (allowedOrigins.includes(origin)) return callback(null, true)
-    return callback(new Error('Not allowed by CORS'))
+    console.log('Blocked by CORS:', origin)
+    return callback(null, false)
   },
   methods: ['GET', 'POST', 'OPTIONS'],
   allowedHeaders: ['Content-Type', 'Authorization'],
