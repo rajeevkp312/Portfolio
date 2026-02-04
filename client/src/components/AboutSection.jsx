@@ -55,7 +55,7 @@ export default function AboutSection() {
             animate={{ y: [0, -10, 0] }}
             transition={{ duration: 6, repeat: Infinity, ease: 'easeInOut' }}
           >
-            <ElectricBorder color="#ffee80" speed={2} chaos={0.15} thickness={2} borderRadius={16} style={{ borderRadius: 16 }}>
+            <ElectricBorder color="#809fff" speed={3} chaos={0.02} thickness={2} borderRadius={16} style={{ borderRadius: 16 }}>
               <img
                 src="/profile1.jpg"
                 alt="Rajeev Kumar Pandit profile"
