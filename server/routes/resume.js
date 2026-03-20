@@ -1,9 +1,9 @@
 import { Router } from 'express'
 import multer from 'multer'
-import path from 'path'
 import fs from 'fs'
 import {
   getResume,
+  getResumeFile,
   uploadResume,
   deleteResume,
 } from '../controllers/resumeController.js'
@@ -34,6 +34,9 @@ const upload = multer({
 
 // Public - get resume URL
 router.get('/', getResume)
+
+// Public - download resume file
+router.get('/file', getResumeFile)
 
 // Admin only
 router.post('/', requireAdmin, upload.single('resume'), uploadResume)

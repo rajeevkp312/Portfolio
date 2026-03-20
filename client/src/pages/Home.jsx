@@ -1,9 +1,9 @@
-import { useRef, useState, useEffect } from 'react'
+import { useMemo, useRef, useState, useEffect } from 'react'
 import { motion } from 'framer-motion'
 import { container, fadeInUp } from '../animations/presets'
 import ElectricBorder from '../components/ElectricBorder'
 import VariableProximity from '../components/VariableProximity'
-import { api } from '../utils/api'
+import { api, API_BASE } from '../utils/api'
 
 export default function Home() {
   const name = 'Rajeev Kumar Pandit'
@@ -11,20 +11,37 @@ export default function Home() {
   const intro = 'Building scalable full-stack applications with modern web technologies.'
   const containerRef = useRef(null)
   const [resumeUrl, setResumeUrl] = useState('/resume/RajeevPandit.pdf') // Default fallback
+  const [profileImages, setProfileImages] = useState({ hero: '/images/profile.jpg', about: '/profile1.jpg' })
+
+  const resumeHref = useMemo(() => {
+    if (!resumeUrl) return ''
+    if (resumeUrl.startsWith('http://') || resumeUrl.startsWith('https://')) return resumeUrl
+    if (resumeUrl.startsWith('/api/')) return `${API_BASE}${resumeUrl}`
+    return resumeUrl
+  }, [resumeUrl])
 
   useEffect(() => {
-    async function loadResume() {
+    async function loadData() {
       try {
-        const res = await api.get('/api/resume')
-        if (res.ok) {
-          const data = await res.json()
+        const [resumeRes, profileRes] = await Promise.all([
+          api.get('/api/resume'),
+          api.get('/api/profile')
+        ])
+
+        if (resumeRes.ok) {
+          const data = await resumeRes.json()
           if (data && data.url) setResumeUrl(data.url)
         }
+
+        if (profileRes.ok) {
+          const data = await profileRes.json()
+          setProfileImages(data)
+        }
       } catch (e) {
-        console.error('Failed to load resume URL', e)
+        console.error('Failed to load home data', e)
       }
     }
-    loadResume()
+    loadData()
   }, [])
 
   return (
@@ -40,7 +57,7 @@ export default function Home() {
           <motion.div variants={fadeInUp} className="relative">
             <ElectricBorder color="#7df9ff" speed={1} chaos={0.12} borderRadius={9999} style={{ borderRadius: 9999 }}>
               <img
-                src="/images/profile.jpg"
+                src={profileImages.hero}
                 alt={name}
                 className="h-28 w-28 sm:h-32 sm:w-32 rounded-full shadow-xl object-cover"
               />
@@ -100,7 +117,7 @@ export default function Home() {
               <motion.a
                 whileHover={{ scale: 1.03 }}
                 whileTap={{ scale: 0.98 }}
-                href={resumeUrl}
+                href={resumeHref}
                 target="_blank"
                 rel="noopener noreferrer"
                 download

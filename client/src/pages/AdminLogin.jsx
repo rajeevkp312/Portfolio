@@ -1,6 +1,6 @@
 import { useState } from 'react'
-import { useNavigate } from 'react-router-dom'
-import { FiEye, FiEyeOff } from 'react-icons/fi'
+import { useNavigate, Link } from 'react-router-dom'
+import { FiEye, FiEyeOff, FiHome } from 'react-icons/fi'
 import { api } from '../utils/api'
 
 export default function AdminLogin() {
@@ -72,6 +72,15 @@ export default function AdminLogin() {
         >
           {loading ? 'Signing in...' : 'Sign In'}
         </button>
+        <div className="text-center">
+          <a
+            href="/"
+            className="inline-flex items-center gap-2 text-sm text-white/70 hover:text-white transition-colors"
+          >
+            <FiHome size={16} />
+            Go to Home
+          </a>
+        </div>
       </form>
     </main>
   )

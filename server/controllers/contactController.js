@@ -1,5 +1,4 @@
 import ContactMessage from '../models/ContactMessage.js'
-import nodemailer from 'nodemailer'
 
 export async function submitMessage(req, res) {
   try {
@@ -26,73 +25,33 @@ export async function submitMessage(req, res) {
 
     const doc = await ContactMessage.create(data)
 
-    const {
-      SMTP_HOST,
-      SMTP_PORT,
-      SMTP_USER,
-      SMTP_PASS,
-      CONTACT_TO_EMAIL,
-      CONTACT_FROM_EMAIL,
-    } = process.env
-
-    if (SMTP_HOST && SMTP_PORT && SMTP_USER && SMTP_PASS && CONTACT_TO_EMAIL) {
-      const port = Number(SMTP_PORT)
-      const transporter = nodemailer.createTransport({
-        host: SMTP_HOST,
-        port,
-        secure: port === 465,
-        auth: { user: SMTP_USER, pass: SMTP_PASS },
+    try {
+      const formspreeEndpoint = 'https://formspree.io/f/xnjgrjkp'
+      const forwardRes = await fetch(formspreeEndpoint, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          Accept: 'application/json',
+        },
+        body: JSON.stringify({
+          name: data.name,
+          email: data.email,
+          subject: data.subject,
+          message: data.message,
+        }),
       })
 
-      const fromAddress = CONTACT_FROM_EMAIL || SMTP_USER
-      const replyTo = data.email
-
-      const subjectLine = `Portfolio Contact: ${data.subject}`
-      const text = [
-        `Name: ${data.name}`,
-        `Email: ${data.email}`,
-        `Subject: ${data.subject}`,
-        '',
-        data.message,
-      ].join('\n')
-
-      try {
-        const info = await transporter.sendMail({
-          from: fromAddress,
-          to: CONTACT_TO_EMAIL,
-          replyTo,
-          subject: subjectLine,
-          text,
-        })
-        console.log('✅ Email sent via nodemailer:', info.messageId)
-      } catch (mailErr) {
-        console.error('❌ Nodemailer error:', mailErr)
-        // Optional fallback to 587 STARTTLS if 465 fails
-        if (port === 465) {
-          console.log('🔄 Retrying with port 587 STARTTLS...')
-          const fallbackTransporter = nodemailer.createTransport({
-            host: SMTP_HOST,
-            port: 587,
-            secure: false,
-            requireTLS: true,
-            auth: { user: SMTP_USER, pass: SMTP_PASS },
-          })
-          try {
-            const fallbackInfo = await fallbackTransporter.sendMail({
-              from: fromAddress,
-              to: CONTACT_TO_EMAIL,
-              replyTo,
-              subject: subjectLine,
-              text,
-            })
-            console.log('✅ Email sent via fallback 587:', fallbackInfo.messageId)
-          } catch (fallbackErr) {
-            console.error('❌ Fallback 587 also failed:', fallbackErr)
-          }
+      if (!forwardRes.ok) {
+        let errText = ''
+        try {
+          errText = await forwardRes.text()
+        } catch (e) {
+          errText = ''
         }
+        console.error('❌ Formspree forward failed:', forwardRes.status, errText)
       }
-    } else {
-      console.warn('⚠️ SMTP env vars missing; email not sent.')
+    } catch (forwardErr) {
+      console.error('❌ Formspree forward error:', forwardErr)
     }
 
     res.status(201).json({ success: true, id: doc._id })

@@ -13,6 +13,7 @@ import internshipRouter from './routes/internship.js'
 import contactsAdminRouter from './routes/contactsAdmin.js'
 import resumeRouter from './routes/resume.js'
 import seedRouter from './routes/seed.js'
+import profileRouter from './routes/profile.js'
 
 dotenv.config()
 
@@ -56,8 +57,9 @@ app.use('/api/internship', internshipRouter)
 app.use('/api/admin/contacts', contactsAdminRouter)
 app.use('/api/seed-data', seedRouter)
 app.use('/api/resume', resumeRouter)
+app.use('/api/profile', profileRouter)
 
-const PORT = process.env.PORT || 5000
+const PORT = process.env.PORT || 5001
 
 connectDB().then(() => {
   app.listen(PORT, () => {

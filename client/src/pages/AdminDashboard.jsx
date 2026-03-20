@@ -1,5 +1,5 @@
-import { useEffect, useState } from 'react'
-import { useNavigate, Link, Routes, Route } from 'react-router-dom'
+import { useEffect, useMemo, useState } from 'react'
+import { useNavigate, Link, Routes, Route, useLocation } from 'react-router-dom'
 import { api } from '../utils/api'
 import ProjectsAdmin from '../components/admin/ProjectsAdmin'
 import SkillsAdmin from '../components/admin/SkillsAdmin'
@@ -8,39 +8,168 @@ import EducationAdmin from '../components/admin/EducationAdmin'
 import InternshipAdmin from '../components/admin/InternshipAdmin'
 import ContactsAdmin from '../components/admin/ContactsAdmin'
 import ResumeAdmin from '../components/admin/ResumeAdmin'
+import ProfileAdmin from '../components/admin/ProfileAdmin'
+import { FiMenu, FiX, FiLogOut, FiHome } from 'react-icons/fi'
 
 function AdminLayout({ children }) {
   const navigate = useNavigate()
+  const location = useLocation()
+  const [sidebarOpen, setSidebarOpen] = useState(false)
+
+  const navItems = useMemo(
+    () => [
+      { label: 'Overview', to: '/admin' },
+      { label: 'Projects', to: '/admin/projects' },
+      { label: 'Skills', to: '/admin/skills' },
+      { label: 'Achievements', to: '/admin/achievements' },
+      { label: 'Education', to: '/admin/education' },
+      { label: 'Internship', to: '/admin/internship' },
+      { label: 'Contacts', to: '/admin/contacts' },
+      { label: 'Resume', to: '/admin/resume' },
+      { label: 'Profile', to: '/admin/profile' },
+    ],
+    []
+  )
 
   const handleLogout = async () => {
     await api.postAdmin('/api/auth/logout', {})
     navigate('/admin/login')
   }
 
+  const isActive = (to) => {
+    if (to === '/admin') return location.pathname === '/admin' || location.pathname === '/admin/'
+    return location.pathname.startsWith(to)
+  }
+
+  const closeSidebar = () => setSidebarOpen(false)
+
   return (
     <div className="min-h-screen bg-gradient-to-b from-base-900 via-base-800 to-base-900 text-white">
-      <nav className="border-b border-base-700 bg-base-800/50 backdrop-blur px-6 py-4 flex items-center justify-between sticky top-0 z-10">
-        <div className="flex items-center gap-6 overflow-x-auto">
-          <Link to="/admin" className="text-xl font-bold whitespace-nowrap">Admin Dashboard</Link>
-          <div className="flex gap-4 text-sm whitespace-nowrap pb-1">
-            <Link to="/admin" className="hover:text-accent-400">Overview</Link>
-            <Link to="/admin/projects" className="hover:text-accent-400">Projects</Link>
-            <Link to="/admin/skills" className="hover:text-accent-400">Skills</Link>
-            <Link to="/admin/achievements" className="hover:text-accent-400">Achievements</Link>
-            <Link to="/admin/education" className="hover:text-accent-400">Education</Link>
-            <Link to="/admin/internship" className="hover:text-accent-400">Internship</Link>
-            <Link to="/admin/contacts" className="hover:text-accent-400">Contacts</Link>
-            <Link to="/admin/resume" className="hover:text-accent-400">Resume</Link>
+      <div className="sticky top-0 z-20 border-b border-base-700 bg-base-800/50 backdrop-blur md:hidden">
+        <div className="px-4 py-3 flex items-center justify-between">
+          <button
+            type="button"
+            onClick={() => setSidebarOpen(true)}
+            className="inline-flex items-center justify-center w-10 h-10 rounded-lg bg-base-800/60 border border-base-700 hover:border-accent-500"
+            aria-label="Open admin menu"
+          >
+            <FiMenu size={18} />
+          </button>
+          <Link to="/admin" className="text-base font-bold">Admin Dashboard</Link>
+          <button
+            type="button"
+            onClick={handleLogout}
+            className="inline-flex items-center justify-center w-10 h-10 rounded-lg bg-red-600/20 border border-red-600/30 hover:bg-red-600/30 text-red-200"
+            aria-label="Logout"
+          >
+            <FiLogOut size={18} />
+          </button>
+        </div>
+      </div>
+
+      <div className="md:flex">
+        <div className="hidden md:flex md:sticky md:top-0 md:h-screen md:w-72 md:flex-col md:border-r md:border-base-700 md:bg-base-800/40 md:backdrop-blur">
+          <div className="px-6 py-5 border-b border-base-700">
+            <Link to="/admin" className="text-xl font-bold">Admin Dashboard</Link>
+          </div>
+          <div className="flex-1 overflow-y-auto px-3 py-4">
+            <div className="space-y-1">
+              {navItems.map((item) => (
+                <Link
+                  key={item.to}
+                  to={item.to}
+                  className={`block px-3 py-2 rounded-lg text-sm border transition-colors ${
+                    isActive(item.to)
+                      ? 'bg-accent-600/15 border-accent-500 text-white'
+                      : 'bg-transparent border-transparent text-white/70 hover:text-white hover:bg-base-800/60 hover:border-base-700'
+                  }`}
+                >
+                  {item.label}
+                </Link>
+              ))}
+              <a
+                href="/"
+                className="flex items-center gap-2 px-3 py-2 rounded-lg text-sm border border-base-700 text-white/70 hover:text-white hover:bg-base-800/60 hover:border-base-700 transition-colors"
+              >
+                <FiHome size={16} />
+                Go to Home
+              </a>
+            </div>
+          </div>
+          <div className="p-4 border-t border-base-700">
+            <button
+              onClick={handleLogout}
+              className="w-full flex items-center justify-center gap-2 px-4 py-2 rounded-lg bg-red-600/20 hover:bg-red-600/30 text-red-200 text-sm font-medium"
+            >
+              <FiLogOut size={16} />
+              Logout
+            </button>
           </div>
         </div>
-        <button
-          onClick={handleLogout}
-          className="px-4 py-2 rounded bg-red-600 hover:bg-red-500 text-sm font-medium ml-4"
-        >
-          Logout
-        </button>
-      </nav>
-      <main className="p-6 max-w-7xl mx-auto">{children}</main>
+
+        <div className="flex-1">
+          <main className="p-4 sm:p-6 max-w-7xl mx-auto">{children}</main>
+        </div>
+      </div>
+
+      {sidebarOpen && (
+        <div className="fixed inset-0 z-30 md:hidden">
+          <button
+            type="button"
+            className="absolute inset-0 bg-black/60"
+            onClick={closeSidebar}
+            aria-label="Close admin menu"
+          />
+          <div className="absolute left-0 top-0 h-full w-72 bg-base-900 border-r border-base-700 shadow-2xl">
+            <div className="px-4 py-3 border-b border-base-700 flex items-center justify-between">
+              <Link onClick={closeSidebar} to="/admin" className="text-base font-bold">
+                Admin Dashboard
+              </Link>
+              <button
+                type="button"
+                onClick={closeSidebar}
+                className="inline-flex items-center justify-center w-10 h-10 rounded-lg bg-base-800/60 border border-base-700 hover:border-accent-500"
+                aria-label="Close admin menu"
+              >
+                <FiX size={18} />
+              </button>
+            </div>
+            <div className="px-3 py-4 space-y-1 overflow-y-auto h-[calc(100%-124px)]">
+              {navItems.map((item) => (
+                <Link
+                  key={item.to}
+                  to={item.to}
+                  onClick={closeSidebar}
+                  className={`block px-3 py-2 rounded-lg text-sm border transition-colors ${
+                    isActive(item.to)
+                      ? 'bg-accent-600/15 border-accent-500 text-white'
+                      : 'bg-transparent border-transparent text-white/70 hover:text-white hover:bg-base-800/60 hover:border-base-700'
+                  }`}
+                >
+                  {item.label}
+                </Link>
+              ))}
+              <a
+                href="/"
+                onClick={closeSidebar}
+                className="flex items-center gap-2 px-3 py-2 rounded-lg text-sm border border-base-700 text-white/70 hover:text-white hover:bg-base-800/60 hover:border-base-700 transition-colors"
+              >
+                <FiHome size={16} />
+                Go to Home
+              </a>
+            </div>
+            <div className="p-4 border-t border-base-700">
+              <button
+                onClick={handleLogout}
+                className="w-full flex items-center justify-center gap-2 px-4 py-2 rounded-lg bg-red-600/20 hover:bg-red-600/30 text-red-200 text-sm font-medium"
+              >
+                <FiLogOut size={16} />
+                Logout
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   )
 }
@@ -152,6 +281,7 @@ export default function AdminDashboard() {
         <Route path="/internship" element={<InternshipAdmin />} />
         <Route path="/contacts" element={<ContactsAdmin />} />
         <Route path="/resume" element={<ResumeAdmin />} />
+        <Route path="/profile" element={<ProfileAdmin />} />
       </Routes>
     </AdminLayout>
   )

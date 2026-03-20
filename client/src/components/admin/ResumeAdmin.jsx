@@ -1,5 +1,5 @@
-import { useEffect, useState } from 'react'
-import { api } from '../../utils/api'
+import { useEffect, useMemo, useState } from 'react'
+import { api, API_BASE } from '../../utils/api'
 import { FiUpload, FiTrash2, FiDownload, FiFile } from 'react-icons/fi'
 
 export default function ResumeAdmin() {
@@ -7,6 +7,12 @@ export default function ResumeAdmin() {
   const [loading, setLoading] = useState(true)
   const [uploading, setUploading] = useState(false)
   const [file, setFile] = useState(null)
+
+  const downloadHref = useMemo(() => {
+    if (!resume?.url) return ''
+    if (resume.url.startsWith('http://') || resume.url.startsWith('https://')) return resume.url
+    return `${API_BASE}${resume.url}`
+  }, [resume])
 
   useEffect(() => {
     loadResume()
@@ -92,7 +98,7 @@ export default function ResumeAdmin() {
               <p className="text-white/60 text-sm mt-1">Resume is live and available for download</p>
               <div className="flex gap-3 mt-3">
                 <a
-                  href={resume.url}
+                  href={downloadHref}
                   target="_blank"
                   rel="noopener noreferrer"
                   className="flex items-center gap-2 px-4 py-2 rounded-lg bg-accent-600 hover:bg-accent-500 text-white text-sm font-medium"
