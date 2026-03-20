@@ -1,40 +1,50 @@
-import { useRef } from 'react'
+import { useRef, useState, useEffect } from 'react'
 import { motion } from 'framer-motion'
 import { container, fadeInUp, inViewStagger } from '../animations/presets'
 import VariableProximity from './VariableProximity'
+import { api } from '../utils/api'
+
 import { FaTrophy, FaCode, FaChessKing, FaBriefcase } from 'react-icons/fa'
 
 export default function AchievementsSection() {
   const headingRef = useRef(null)
+  const [achievements, setAchievements] = useState([])
+  const [loading, setLoading] = useState(true)
 
-  const achievements = [
-    {
-      icon: FaTrophy,
-      title: 'Gorakhpur Mahotsav Hackathon',
-      description: 'Core team member of “Invictus Coders”. Built “TraVis” – AI traffic safety & congestion monitoring using OpenCV, YOLO, and DeepSORT.',
-      links: [
-        { label: 'LinkedIn Post', url: 'https://www.linkedin.com/posts/rajeev-kumar-pandit-a72977280_teamwork-invictuscoders-gorakhpurmahotsav-activity-7416854056377208832-sje1' },
-      ],
-    },
-    {
-      icon: FaBriefcase,
-      title: 'MERN Stack Internship',
-      description: 'Awarded A+ Grade during Summer Internship at Softpro India Computer Technologies Pvt. Ltd. for backend and API development.',
-    },
-    {
-      icon: FaChessKing,
-      title: 'Chess.com Blitz Rating 1500',
-      description: 'Strategic thinking and consistency demonstrated through competitive online chess.',
-      links: [
-        { label: 'Chess Profile', url: 'https://www.chess.com/member/RKP0030' },
-      ],
-    },
-    {
-      icon: FaCode,
-      title: 'AI + Computer Vision Projects',
-      description: 'Real-world problem solving with AI/CV exposure, building end-to-end intelligent systems.',
-    },
-  ]
+  useEffect(() => {
+    async function loadAchievements() {
+      try {
+        const res = await api.get('/api/achievements')
+        const data = await res.json()
+        
+        // Match icons based on title or static list
+        const enriched = data.map(item => {
+          let Icon = FaTrophy
+          const title = item.title.toLowerCase()
+          if (title.includes('hackathon')) Icon = FaTrophy
+          if (title.includes('internship')) Icon = FaBriefcase
+          if (title.includes('chess')) Icon = FaChessKing
+          if (title.includes('ai') || title.includes('vision') || title.includes('code')) Icon = FaCode
+          
+          return { ...item, Icon }
+        })
+        const ordered = enriched.slice().sort((a, b) => {
+          const ao = typeof a.order === 'number' ? a.order : 999
+          const bo = typeof b.order === 'number' ? b.order : 999
+          if (ao !== bo) return ao - bo
+          return (a.title || '').localeCompare(b.title || '')
+        })
+        setAchievements(ordered)
+      } catch (e) {
+        console.error('Failed to load achievements', e)
+      } finally {
+        setLoading(false)
+      }
+    }
+    loadAchievements()
+  }, [])
+
+  if (loading && achievements.length === 0) return null
 
   return (
     <section id="achievements" className="relative mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 py-16">
@@ -74,10 +84,10 @@ export default function AchievementsSection() {
         className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6"
       >
         {achievements.map((item, idx) => {
-          const Icon = item.icon
+          const Icon = item.Icon
           return (
             <motion.div
-              key={idx}
+              key={item._id || idx}
               variants={fadeInUp}
               whileHover={{ scale: 1.03 }}
               className="glass-card p-6 flex flex-col items-start gap-4 transition hover:shadow-[0_25px_60px_-30px_rgba(34,211,238,0.35)]"
@@ -88,7 +98,7 @@ export default function AchievementsSection() {
               <div>
                 <h3 className="text-base md:text-lg font-semibold tracking-tight">{item.title}</h3>
                 <p className="mt-1 text-white/70 text-sm leading-relaxed">{item.description}</p>
-                {item.links && (
+                {item.links && item.links.length > 0 && (
                   <div className="mt-3 flex flex-wrap gap-2">
                     {item.links.map((link, i) => (
                       <motion.a

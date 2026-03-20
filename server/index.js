@@ -1,10 +1,18 @@
 import express from 'express'
 import cors from 'cors'
 import dotenv from 'dotenv'
+import cookieParser from 'cookie-parser'
 import connectDB from './config/db.js'
 import projectsRouter from './routes/projects.js'
 import skillsRouter from './routes/skills.js'
 import contactRouter from './routes/contact.js'
+import authRouter from './routes/auth.js'
+import achievementsRouter from './routes/achievements.js'
+import educationRouter from './routes/education.js'
+import internshipRouter from './routes/internship.js'
+import contactsAdminRouter from './routes/contactsAdmin.js'
+import resumeRouter from './routes/resume.js'
+import seedRouter from './routes/seed.js'
 
 dotenv.config()
 
@@ -24,13 +32,14 @@ const corsOptions = {
     console.log('Blocked by CORS:', origin)
     return callback(null, false)
   },
-  methods: ['GET', 'POST', 'OPTIONS'],
-  allowedHeaders: ['Content-Type', 'Authorization'],
-  credentials: false,
+  methods: ['GET', 'POST', 'PUT', 'DELETE', 'PATCH', 'OPTIONS'],
+  allowedHeaders: ['Content-Type', 'Authorization', 'X-Requested-With', 'Accept'],
+  credentials: true,
 }
 
 app.use(cors(corsOptions))
 app.options('*', cors(corsOptions))
+app.use(cookieParser())
 app.use(express.json({ limit: '100kb' }))
 
 app.get('/api/health', (_req, res) => {
@@ -40,6 +49,13 @@ app.get('/api/health', (_req, res) => {
 app.use('/api/projects', projectsRouter)
 app.use('/api/skills', skillsRouter)
 app.use('/api/contact', contactRouter)
+app.use('/api/auth', authRouter)
+app.use('/api/achievements', achievementsRouter)
+app.use('/api/education', educationRouter)
+app.use('/api/internship', internshipRouter)
+app.use('/api/admin/contacts', contactsAdminRouter)
+app.use('/api/seed-data', seedRouter)
+app.use('/api/resume', resumeRouter)
 
 const PORT = process.env.PORT || 5000
 

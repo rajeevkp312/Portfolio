@@ -1,20 +1,31 @@
-import { useRef } from 'react'
+import { useRef, useState, useEffect } from 'react'
 import { motion } from 'framer-motion'
 import { container, fadeInUp } from '../animations/presets'
 import VariableProximity from './VariableProximity'
+import { api } from '../utils/api'
 
-// Internship: featured card with emphasized entrance and hover glow
+// Internship: dynamic data from API
 export default function InternshipCard() {
   const headingRef = useRef(null)
-  const internships = [
-    {
-      company: 'Softpro India Computer Technologies Pvt. Ltd.',
-      role: 'MERN Stack Intern',
-      duration: '60 Days',
-      highlights: ['REST APIs', 'Authentication', 'Database design', 'Backend logic'],
-      grade: 'A+ Grade'
+  const [internships, setInternships] = useState([])
+  const [loading, setLoading] = useState(true)
+
+  useEffect(() => {
+    async function loadInternships() {
+      try {
+        const res = await api.get('/api/internship')
+        const data = await res.json()
+        setInternships(data)
+      } catch (e) {
+        console.error('Failed to load internships', e)
+      } finally {
+        setLoading(false)
+      }
     }
-  ]
+    loadInternships()
+  }, [])
+
+  if (loading && internships.length === 0) return null
 
   return (
     <section id="internship" className="relative mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 py-16">
@@ -41,11 +52,11 @@ export default function InternshipCard() {
         initial="hidden"
         whileInView="show"
         viewport={{ once: true, amount: 0.3 }}
-        className="grid grid-cols-1"
+        className="grid grid-cols-1 gap-6"
       >
         {internships.map((item, idx) => (
           <motion.div
-            key={idx}
+            key={item._id || idx}
             variants={fadeInUp}
             whileHover={{ scale: 1.02 }}
             className="p-[1px] rounded-2xl bg-gradient-to-br from-accent-700/60 to-accent-500/30"
@@ -58,19 +69,21 @@ export default function InternshipCard() {
               <div className="flex items-start justify-between gap-4">
                 <div>
                   <h3 className="text-xl md:text-2xl font-bold tracking-tight">
-                    {item.role}
+                    {item.title}
                   </h3>
                   <p className="mt-1 text-white/80">{item.company}</p>
                   <p className="text-white/60 text-sm">{item.duration}</p>
                 </div>
-                <span className="inline-flex items-center rounded-full bg-gradient-to-r from-accent-700 to-accent-500 px-3 py-1 text-xs font-semibold text-base-900 shadow-soft">
-                  {item.grade}
-                </span>
+                {item.grade && (
+                  <span className="inline-flex items-center rounded-full bg-gradient-to-r from-accent-700 to-accent-500 px-3 py-1 text-xs font-semibold text-base-900 shadow-soft">
+                    {item.grade}
+                  </span>
+                )}
               </div>
 
               {/* Highlights */}
               <ul className="mt-6 grid grid-cols-1 sm:grid-cols-2 gap-3">
-                {item.highlights.map((h, i) => (
+                {(item.highlights || ['REST APIs', 'Authentication', 'Database design', 'Backend logic']).map((h, i) => (
                   <li key={i} className="flex items-center gap-2 text-white/80">
                     <span className="inline-block h-1.5 w-1.5 rounded-full bg-accent-600" />
                     <span>{h}</span>

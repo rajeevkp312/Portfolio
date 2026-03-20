@@ -4,6 +4,13 @@ const ProjectSchema = new mongoose.Schema(
   {
     title: { type: String, required: true },
     description: { type: String, required: true },
+    features: [{ type: String }],
+    problem: { type: String },
+    architecture: [{ type: String }],
+    deployment: {
+      frontend: { type: String },
+      backend: { type: String }
+    },
     tags: [{ type: String }],
     githubUrl: { type: String },
     liveUrl: { type: String },

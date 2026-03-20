@@ -1,14 +1,31 @@
-import { useRef } from 'react'
+import { useRef, useState, useEffect } from 'react'
 import { motion } from 'framer-motion'
 import { container, fadeInUp } from '../animations/presets'
 import ElectricBorder from '../components/ElectricBorder'
 import VariableProximity from '../components/VariableProximity'
+import { api } from '../utils/api'
 
 export default function Home() {
   const name = 'Rajeev Kumar Pandit'
   const subtitle = 'MERN Stack Developer | AI & ML Undergraduate | Problem Solver'
   const intro = 'Building scalable full-stack applications with modern web technologies.'
   const containerRef = useRef(null)
+  const [resumeUrl, setResumeUrl] = useState('/resume/RajeevPandit.pdf') // Default fallback
+
+  useEffect(() => {
+    async function loadResume() {
+      try {
+        const res = await api.get('/api/resume')
+        if (res.ok) {
+          const data = await res.json()
+          if (data && data.url) setResumeUrl(data.url)
+        }
+      } catch (e) {
+        console.error('Failed to load resume URL', e)
+      }
+    }
+    loadResume()
+  }, [])
 
   return (
     <main id="home" className="relative overflow-hidden">
@@ -36,16 +53,16 @@ export default function Home() {
             <div ref={containerRef} className="w-full">
               <motion.h1
                 aria-label={name}
-                className="mb-3 font-extrabold tracking-tight leading-tight text-[clamp(1.75rem,8vw,3.75rem)] sm:text-[clamp(2rem,6vw,4.25rem)]"
+                className="mb-2 font-bold tracking-tight leading-tight text-[clamp(1.5rem,7vw,3rem)]"
                 variants={container}
               >
                 <VariableProximity
                   label={name}
                   className="inline-block text-white"
-                  fromFontVariationSettings="'wght' 500, 'opsz' 12"
-                  toFontVariationSettings="'wght' 900, 'opsz' 36"
+                  fromFontVariationSettings="'wght' 400, 'opsz' 12"
+                  toFontVariationSettings="'wght' 800, 'opsz' 32"
                   containerRef={containerRef}
-                  radius={100}
+                  radius={80}
                   falloff="exponential"
                 />
               </motion.h1>
@@ -83,7 +100,9 @@ export default function Home() {
               <motion.a
                 whileHover={{ scale: 1.03 }}
                 whileTap={{ scale: 0.98 }}
-                href="/resume/RajeevPandit.pdf"
+                href={resumeUrl}
+                target="_blank"
+                rel="noopener noreferrer"
                 download
                 className="btn-secondary"
               >

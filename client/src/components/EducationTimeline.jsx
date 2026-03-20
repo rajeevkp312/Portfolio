@@ -1,33 +1,31 @@
-import { useRef } from 'react'
+import { useRef, useState, useEffect } from 'react'
 import { motion } from 'framer-motion'
 import { inViewStagger, fadeInUp } from '../animations/presets'
 import VariableProximity from './VariableProximity'
+import { api } from '../utils/api'
 
-// Education timeline: vertical, glass cards, scroll-triggered reveal
+// Education timeline: dynamic data from API
 export default function EducationTimeline() {
   const headingRef = useRef(null)
-  const education = [
-    {
-      yearRange: '2022–2026',
-      institution: 'Institute of Technology & Management, Gorakhpur',
-      degree: 'B.Tech AIML'
-    },
-    {
-      yearRange: '2022–2026 (Concurrent)',
-      institution: 'Institute of Technology & Management, Gorakhpur',
-      degree: 'Honors in Cyber Security'
-    },
-    {
-      yearRange: '2019–2021',
-      institution: 'Mahatma Gandhi Intermediate College',
-      degree: 'Intermediate (Maths)'
-    },
-    {
-      yearRange: '2018–2019',
-      institution: 'Oxford Public School',
-      degree: 'High School'
+  const [education, setEducation] = useState([])
+  const [loading, setLoading] = useState(true)
+
+  useEffect(() => {
+    async function loadEducation() {
+      try {
+        const res = await api.get('/api/education')
+        const data = await res.json()
+        setEducation(data)
+      } catch (e) {
+        console.error('Failed to load education', e)
+      } finally {
+        setLoading(false)
+      }
     }
-  ]
+    loadEducation()
+  }, [])
+
+  if (loading && education.length === 0) return null
 
   return (
     <section id="education" className="relative mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 py-16">
@@ -60,7 +58,7 @@ export default function EducationTimeline() {
 
         {education.map((item, idx) => (
           <motion.li
-            key={idx}
+            key={item._id || idx}
             variants={fadeInUp}
             whileHover={{ scale: 1.02 }}
             className="relative pl-8 md:pl-10"
