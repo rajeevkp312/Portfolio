@@ -11,7 +11,7 @@ export default function Home() {
   const intro = 'Building scalable full-stack applications with modern web technologies.'
   const containerRef = useRef(null)
   const [resumeUrl, setResumeUrl] = useState('/resume/RajeevPandit.pdf') // Default fallback
-  const [profileImages, setProfileImages] = useState({ hero: '/images/profile.jpg', about: '/profile1.jpg' })
+  const [profileData, setProfileData] = useState({ hero: '/images/profile.jpg', about: '/profile1.jpg', updatedAt: '' })
 
   const resumeHref = useMemo(() => {
     if (!resumeUrl) return ''
@@ -19,6 +19,14 @@ export default function Home() {
     if (resumeUrl.startsWith('/api/')) return `${API_BASE}${resumeUrl}`
     return resumeUrl
   }, [resumeUrl])
+
+  // Helper to add cache-busting query param for images
+  const imageSrc = useMemo(() => {
+    const url = profileData.hero || '/images/profile.jpg'
+    if (url.startsWith('data:')) return url
+    const separator = url.includes('?') ? '&' : '?'
+    return profileData.updatedAt ? `${url}${separator}_t=${profileData.updatedAt}` : url
+  }, [profileData])
 
   useEffect(() => {
     async function loadData() {
@@ -35,7 +43,11 @@ export default function Home() {
 
         if (profileRes.ok) {
           const data = await profileRes.json()
-          setProfileImages(data)
+          setProfileData({
+            hero: data.hero || '/images/profile.jpg',
+            about: data.about || '/profile1.jpg',
+            updatedAt: data.updatedAt || ''
+          })
         }
       } catch (e) {
         console.error('Failed to load home data', e)
@@ -57,7 +69,7 @@ export default function Home() {
           <motion.div variants={fadeInUp} className="relative">
             <ElectricBorder color="#7df9ff" speed={1} chaos={0.12} borderRadius={9999} style={{ borderRadius: 9999 }}>
               <img
-                src={profileImages.hero}
+                src={imageSrc}
                 alt={name}
                 className="h-28 w-28 sm:h-32 sm:w-32 rounded-full shadow-xl object-cover"
               />

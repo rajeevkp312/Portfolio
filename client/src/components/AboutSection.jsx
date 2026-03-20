@@ -1,4 +1,4 @@
-import { useRef, useState, useEffect } from 'react'
+import { useMemo, useRef, useState, useEffect } from 'react'
 import { motion } from 'framer-motion'
 import { container, fadeInLeft, fadeInRight, fadeInUp, inViewStagger } from '../animations/presets'
 import ElectricBorder from './ElectricBorder'
@@ -8,7 +8,15 @@ import { api } from '../utils/api'
 // About Me: strictly resume-derived content with scroll-triggered motion
 export default function AboutSection() {
   const headingRef = useRef(null)
-  const [profileImage, setProfileImage] = useState('/profile1.jpg')
+  const [profileData, setProfileData] = useState({ about: '/profile1.jpg', updatedAt: '' })
+
+  // Helper to add cache-busting query param for images
+  const imageSrc = useMemo(() => {
+    const url = profileData.about || '/profile1.jpg'
+    if (url.startsWith('data:')) return url
+    const separator = url.includes('?') ? '&' : '?'
+    return profileData.updatedAt ? `${url}${separator}_t=${profileData.updatedAt}` : url
+  }, [profileData])
 
   useEffect(() => {
     async function loadImage() {
@@ -16,7 +24,10 @@ export default function AboutSection() {
         const res = await api.get('/api/profile')
         if (res.ok) {
           const data = await res.json()
-          if (data.about) setProfileImage(data.about)
+          setProfileData({
+            about: data.about || '/profile1.jpg',
+            updatedAt: data.updatedAt || ''
+          })
         }
       } catch (e) {
         console.error('Failed to load about profile image', e)
@@ -74,7 +85,7 @@ export default function AboutSection() {
           >
             <ElectricBorder color="#809fff" speed={3} chaos={0.02} thickness={2} borderRadius={16} style={{ borderRadius: 16 }}>
               <img
-                src={profileImage}
+                src={imageSrc}
                 alt="Rajeev Kumar Pandit profile"
                 className="h-56 w-56 sm:h-64 sm:w-64 rounded-[16px] object-cover"
                 loading="eager"

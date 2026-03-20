@@ -4,9 +4,12 @@ import fs from 'fs'
 export async function getProfileImages(req, res) {
   try {
     const images = await ProfileImage.find()
+    const heroImg = images.find(img => img.key === 'hero')
+    const aboutImg = images.find(img => img.key === 'about')
     const result = {
-      hero: images.find(img => img.key === 'hero')?.url || '/images/profile.jpg',
-      about: images.find(img => img.key === 'about')?.url || '/profile1.jpg'
+      hero: heroImg?.url || '/images/profile.jpg',
+      about: aboutImg?.url || '/profile1.jpg',
+      updatedAt: heroImg?.updatedAt?.toISOString() || aboutImg?.updatedAt?.toISOString() || Date.now().toString()
     }
     res.json(result)
   } catch (err) {
